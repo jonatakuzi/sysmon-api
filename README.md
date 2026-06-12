@@ -1,67 +1,77 @@
 # sysmon-api
 
-A lightweight Flask REST API that exposes real-time system health metrics as JSON endpoints. Built with Python, Flask, and psutil.
+A lightweight Flask REST API that exposes real-time system health metrics as JSON endpoints. Designed for DevOps monitoring, uptime checks, and system dashboards — deploy it on any Linux server and start querying CPU, memory, disk, and process data instantly.
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-black?logo=flask)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Endpoints
 
 | Method | Route | Auth | Description |
-|---|---|---|---|
-| GET | /health | No | Overall status: healthy or degraded |
-| GET | /cpu | Yes | CPU usage, core count, and frequency |
+|--------|-------|------|-------------|
+| GET | /health | No | Overall status: `healthy` or `degraded` |
+| GET | /cpu | Yes | CPU usage %, core count, and frequency |
 | GET | /memory | Yes | RAM total, available, used, and percent |
 | GET | /disk | Yes | Disk total, used, free, and percent |
 | GET | /processes | Yes | Top 10 processes by CPU usage |
+| GET | /uptime | Yes | System uptime in human-readable format |
 
-Auth uses an X-API-Key request header. Set the API_KEY environment variable before running.
+Auth requires an `X-API-Key` header. Set the `API_KEY` environment variable before running.
 
 ## Stack
 
 - Python 3.10+
-- - Flask 3.x
-  - - psutil 5.x
-   
-    - ## Setup
-   
-    - Install dependencies:
-   
-    -     pip install -r requirements.txt
-   
-    - Run the server:
-   
-    -     API_KEY=your-secret-key python app.py
-   
-    - Server starts on http://localhost:5000
-   
-    - ## Example Usage
-   
-    - Check overall health (no auth):
-   
-    -     curl http://localhost:5000/health
-   
-    - Sample response:
-   
-    -     {
-    -       "status": "healthy",
-    -         "timestamp": 1748478000,
-    -           "cpu_percent": 14.2,
-    -             "memory_percent": 61.5,
-    -               "disk_percent": 42.8
-    -               }
-   
-    -           Get CPU details (auth required):
-   
-    -           curl -H "X-API-Key: your-secret-key" http://localhost:5000/cpu
-   
-    -       Get top 10 processes:
-   
-    -       curl -H "X-API-Key: your-secret-key" http://localhost:5000/processes
-   
-    -   ## Project Structure
-   
-    -       sysmon-api/
-    -       +-- app.py            # Flask app with all route handlers
-    -       +-- requirements.txt  # Flask and psutil dependencies
-   
-    -   ## Notes
-   
-    -   The /health endpoint is public so monitoring tools can poll it without credentials. All metric endpoints require the API key. Resources above 90 percent utilization trigger a "degraded" status in /health.
+- Flask 3.x
+- psutil 5.x
+
+## Setup
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+Run the server:
+```bash
+API_KEY=your-secret-key python app.py
+```
+
+Server starts on `http://localhost:5000`.
+
+## Example Usage
+
+Check overall health (no auth required):
+```bash
+curl http://localhost:5000/health
+```
+```json
+{"status": "healthy", "timestamp": "2024-11-15T14:32:01"}
+```
+
+Query CPU metrics:
+```bash
+curl -H "X-API-Key: your-secret-key" http://localhost:5000/cpu
+```
+```json
+{"cpu_percent": 12.4, "cpu_count": 8, "cpu_freq_mhz": 2400.0}
+```
+
+Query memory usage:
+```bash
+curl -H "X-API-Key: your-secret-key" http://localhost:5000/memory
+```
+```json
+{"total_gb": 16.0, "available_gb": 9.3, "used_gb": 6.7, "percent": 41.9}
+```
+
+Top processes by CPU:
+```bash
+curl -H "X-API-Key: your-secret-key" http://localhost:5000/processes
+```
+
+## Security
+
+- The `/health` endpoint is intentionally unauthenticated for uptime monitor compatibility
+- All other endpoints require the `X-API-Key` header
+- Never hardcode the API key — load it via environment variable in production
